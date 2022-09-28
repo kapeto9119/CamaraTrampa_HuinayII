@@ -1,7 +1,7 @@
 import numpy as np
 import csv, time, datetime, os
 
-import detectObjects
+import detectObjects, EnvioDatos
 
 IMAGES_DIR = 'recognize'
 
@@ -24,6 +24,9 @@ for filename in os.listdir(directory):
     detectObjects.detectObjectOfImage(f, writer, timestamp)
 
 file_name = '{0}'.format(csv_name)
+
+send = Envio(file_name)
+send.sendByEmail()
 
 print("Proceso terminado, se apaga RPI")
 os.system('sudo rm -r recognize/')

@@ -48,7 +48,7 @@ while 1:
 			path2.copy_files()
 			time.sleep(5)
 			break
-	time.sleep(2)
+	time.sleep(30)
 print("Se apaga modo de almacenamiento de la camara")
 GPIO.output(38, GPIO.LOW)
 
