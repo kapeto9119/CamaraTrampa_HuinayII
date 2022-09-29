@@ -19,7 +19,7 @@ db = firestore.client()
 
 def detectObjectOfImage(path, filename, writer, timestamp):
     
-    class_names = ['conejo', 'gato', 'pajaro', 'perro', 'raton', 'zorro']
+    # class_names = ['conejo', 'gato', 'pajaro', 'perro', 'raton', 'zorro']
 
     img_height = 180
     img_width = 180
@@ -40,11 +40,43 @@ def detectObjectOfImage(path, filename, writer, timestamp):
 
     classify_lite = interpreter.get_signature_runner('serving_default')
 
-    predictions_lite = classify_lite(sequential_1_input=img_array)['outputs']
+    interpreter.get_input_details()
 
-    score_lite = tf.nn.softmax(predictions_lite)
+    img_array = img_array.astype("float32")
 
-    db.collection(str(timestamp)).add({'File': str(os.path.normpath(path)), 'Animal':str(class_names[np.argmax(score_lite)]), 'Confidence':str(100 * np.max(score_lite))})
+    encoded = encode(input_2=img_array)
+
+    predictions = tf.nn.sigmoid(encoded["dense"])
+
+    predictions = tf.where(predictions < 0.8, 0, 1) #esta linea hace que solo tire 1 si es sobre 80% de confianza
+
+    # predictions_lite = classify_lite(sequential_1_input=img_array)['outputs']
+
+    # score_lite = tf.nn.softmax(predictions_lite)
+
+    # db.collection(str(timestamp)).add({'File': str(os.path.normpath(path)), 'Animal':str(class_names[np.argmax(score_lite)]), 'Confidence':str(100 * np.max(score_lite))})
+
+    # db.collection(str(timestamp)).add({'File': str(os.path.normpath(path)), 'Animal':predictions.numpy(), 'Confidence':str(100 * np.max(score_lite))})
+
+    i0 = "Ave"
+    i1 = "Conejo"
+    i2 = "Raton"
+    i3 = "Zorro"
+
+    lista = predictions.numpy()
+    max_value = max(lista)
+    max_index = lista.index(max_value)
+
+    if max_index == 0:
+        animal = i0
+    elif max_index == 1:
+        animal = i1
+    elif max_index == 2:
+        animal = i2
+    elif max_index == 3:
+        animal = i3
+
+    print('Predictions:\n', (predictions.numpy())[])
 
     year_data = filename[4] + filename[5] + filename[6] + filename[7]
     month_data = filename[9] + filename[10]
@@ -55,9 +87,11 @@ def detectObjectOfImage(path, filename, writer, timestamp):
     time = year_data + "/" + month_data + "/" + day_data + " " + hour_data + ":" + minute_data
     # "2022/09/01 08:50"
 
-    row = [time, os.path.basename(os.path.normpath(path)), class_names[np.argmax(score_lite)], 100 * np.max(score_lite)]
+    row = [time, os.path.basename(os.path.normpath(path)), animal, 100 * max_value]
+
+    # row = [time, os.path.basename(os.path.normpath(path)), class_names[np.argmax(score_lite)], 100 * np.max(score_lite)]
 
     if (100 * np.max(score_lite) > THRESHOLD):
         writer.writerow(row)
-        
+
     return 0
