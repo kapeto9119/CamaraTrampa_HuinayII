@@ -8,9 +8,6 @@ import time, datetime, os
 
 from TransferImages import Transferencia
 
-# Directorios
-source = "/media/smartdots/HP-ESXI-5_5/DCIM/PHOTO"            #Carpeta que contiene incialmente las imagenes
-recognize = "/home/smartdots/Documents/ObjectDetectionMVP/recognize"      #Carpeta donde se reconocen las imagenes con tensorflow lite
 
 GPIO.setmode(GPIO.BOARD)
 
@@ -23,10 +20,13 @@ d = datetime.datetime.now()
 timestamp = "%04d%02d%02d%02d%02d" % (d.year, d.month, d.day, d.hour, d.minute)
 folderWithDate = str(timestamp)
 
-folder = "/home/smartdots/Documents/ObjectDetectionMVP/"
+# Directorios
+nameOfDevice = str((os.listdir("/media/smartdots/")[0])
+source = "/media/smartdots/" + nameOfDevice + "/DCIM/PHOTO"
+# source = "/media/smartdots/HP-ESXI-5_5/DCIM/PHOTO"            #Carpeta que contiene incialmente las imagenes
+recognize = "/home/smartdots/Documents/ObjectDetectionMVP/recognize"      #Carpeta donde se reconocen las imagenes con tensorflow lite
 
-path1 = Transferencia(source, folderWithDate)
-path2 = Transferencia(str(folder+folderWithDate), recognize)
+folder = "/home/smartdots/Documents/CamaraTrampa_HuinayII/ObjectDetectionMVP/"
 
 print("Espera de 5 seg.")
 time.sleep(5)
@@ -39,12 +39,14 @@ while 1:
 		GPIO.output(38, GPIO.HIGH)
 		time.sleep(15)
 		print("Moviendo imagenes desde la camara hacia la carpeta con la fecha de importación")
+		path1 = Transferencia(source, folderWithDate)
 		path1.transfer_files()
 		#Metodo para verificar si no quedan fotos dentro de la camara pendiente
 		if os.listdir(folderWithDate) == []:
 			#No quedan archivos
 			time.sleep(5)
 			print("Copiando imagenes de la carpeta con las fotos importadas, hacia carpeta de reconocimiento de imagen")
+			path2 = Transferencia(str(folder+folderWithDate), recognize)
 			path2.copy_files()
 			time.sleep(5)
 			break
@@ -60,4 +62,9 @@ GPIO.output(38, GPIO.LOW) #Apago HUB
 GPIO.cleanup()
 
 print("Se ejecuta main.py")
-os.system("python3 main.py")
+
+cmd = "python main.py " + str(nameOfDevice)
+
+os.system(cmd)
+
+# os.system("python3 main.py")

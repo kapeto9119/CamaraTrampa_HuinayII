@@ -17,7 +17,7 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-def detectObjectOfImage(path, writer, timestamp):
+def detectObjectOfImage(path, filename, writer, timestamp):
     
     class_names = ['conejo', 'gato', 'pajaro', 'perro', 'raton', 'zorro']
 
@@ -46,13 +46,18 @@ def detectObjectOfImage(path, writer, timestamp):
 
     db.collection(str(timestamp)).add({'File': str(os.path.normpath(path)), 'Animal':str(class_names[np.argmax(score_lite)]), 'Confidence':str(100 * np.max(score_lite))})
 
-    row = [os.path.basename(os.path.normpath(path)), class_names[np.argmax(score_lite)], 100 * np.max(score_lite)]
+    year_data = filename[4] + filename[5] + filename[6] + filename[7]
+    month_data = filename[9] + filename[10]
+    day_data = filename[11] + filename[12]
+    hour_data = filename[14] + filename[15]
+    minute_data = filename[16] + filename[17]
+
+    time = year_data + "/" + month_data + "/" + day_data + " " + hour_data + ":" + minute_data
+    # "2022/09/01 08:50"
+
+    row = [time, os.path.basename(os.path.normpath(path)), class_names[np.argmax(score_lite)], 100 * np.max(score_lite)]
 
     if (100 * np.max(score_lite) > THRESHOLD):
         writer.writerow(row)
-
-    # print(
-    #     "Se predice que esta imagen pertenece a {} con un {:.2f} porciento de confianza."
-    #     .format(class_names[np.argmax(score_lite)], 100 * np.max(score_lite))
-    # )
+        
     return 0

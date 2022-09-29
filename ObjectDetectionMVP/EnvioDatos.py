@@ -1,4 +1,4 @@
-import email, smtplib, ssl
+import email, smtplib, ssl, request
 
 from email import encoders
 from email.mime.base import MIMEBase
@@ -8,14 +8,16 @@ from email.mime.text import MIMEText
 # Add body to email
 
 class Envio:
-    def __init__(self, filename):
+    def __init__(self, filename, json):
         self.filename = filename
+        self.jsonOriginal = json
 
-        self.subject = "Email desde python en raspberry"
-        self.body = "This is an email with attachment sent from Python"
-        self.sender_email = "nicolas.capetillo@smartdots.cl"
+        self.subject = "Resultados analisis de imágenes Camara Trampa - Huinay II"
+        self.body = "Archivo adjunto"
+        self.sender_email = "compras@smartdots.cl"
         self.receiver_email = "nicolas.capetillo@smartdots.cl"
-        self.password = "Mobotix99"
+        self.bcc = "carlos@smartdots.cl"
+        self.password = "Proyectoap1"
         # password = input("Type your password and press enter:")
 
         # Create a multipart message and set headers
@@ -23,7 +25,7 @@ class Envio:
         self.message["From"] = self.sender_email
         self.message["To"] = self.receiver_email
         self.message["Subject"] = self.subject
-        self.message["Bcc"] = self.receiver_email  # Recommended for mass emails
+        self.message["Bcc"] = self.bcc  # Recommended for mass emails
     
     def sendByEmail(self):
         (self.message).attach(MIMEText(self.body, "plain"))
@@ -56,5 +58,6 @@ class Envio:
             server.login(self.sender_email, self.password)
             server.sendmail(self.sender_email, self.receiver_email, text)
 
-# envio = Envio("objects_detection_on_202209220959.csv")
-# envio.sendByEmail()
+    def sendByHTTP(self):
+        r = requests.post('http://lwan.smartdots.cl:1880/camaras/payload', json=jsonOriginal)
+        print(f"Status Code: {r.status_code}, Response: {r.json()}")
